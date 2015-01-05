@@ -1,0 +1,178 @@
+canvas{
+box-shadow: -1px 0 10px 2px;
+
+}
+.ui-button-text-only .ui-button-text {
+  padding: 0.4em 0.3em;
+  font-weight: bold;
+}
+
+.tools *{
+	cursor: pointer;
+}
+.tools,.tools > div {
+  margin-bottom: 9px;
+/*
+  padding: 5px 10px;
+*/
+}
+#colorpicker_wrap span{
+  cursor: pointer;
+}
+
+span.color {
+  display: inline-block;
+  height: 15px;
+  width: 40px;
+  cursor: pointer;
+}
+.selectSLider select {
+//font-size: 13px;
+	position: relative;
+	float: right;
+	top: -21px;
+	text-align: center;
+	height: 22px;
+}
+#addText{
+max-width: 100%;
+text-align:right;
+direction : rtl;
+}
+#addText:focus {
+    max-width: 100%;
+    position: fixed;
+    z-index: 9;
+    width: 90vw !important;
+    left: 5vw;
+    bottom:5vw;
+    min-height: 35vh;
+    box-shadow: 1px 1px 13px 5px orange; 
+}
+#colorpicker_wrap,
+#color_gradeint_tool {
+  background: none repeat scroll 0 0 white;
+  border-radius: 3px;
+  box-shadow: 0 0 8px 6px gray;
+/*
+  display: none;
+*/
+  padding: 10px;
+/*
+  position: fixed !important;
+*/
+/*
+  top: 30px;
+*/
+  z-index: 9;
+}
+.gradientPicker-ptConfig {
+  bottom: 10px !important;
+}
+
+
+
+#color_gradeint_tool {
+/*
+	min-height: 60px;
+*/
+	overflow: hidden !important;
+	/*
+	min-width: 300px;
+	*/
+}
+#color_gradeint_tool > div {
+  bottom: -15px;
+  top: auto !important;
+  z-index: 14;
+}
+#color_gradeint_tool > div,
+#color_gradeint_tool canvas{
+  position: absolute;
+  top: 0px;
+  left:0px;
+}
+#color_gradeint_tool > button,
+#grad_select {
+  position: absolute;
+  top: 0;
+  z-index: 9;
+}
+#grad_select {
+  right: 0;
+}
+#color_gradeint_tool > button{
+  left: 0;
+}
+div#grad_dir {
+  bottom: auto;
+  left: auto !important;
+  right: 0 !important;
+  top: 0 !important;
+}
+#grad_dir-button{
+line-height: 33px;
+padding: 5px;
+}
+#color_gradeint_tool > span {
+ position: absolute;
+right: 0;
+top: 0;
+z-index: 9;
+}
+
+#color_gradeint_tool .undefined-icon,
+#color_gradeint_tool .undefined-menu {
+display: none;
+left: auto !important;
+/*
+position: absolute !important;
+*/
+right: 0 !important;
+/*
+top: 20px !important;
+*/
+z-index: 9999 !important;
+}
+#color_gradeint_tool .undefined-open {
+display: block;
+
+}
+#color_gradeint_tool  ul.undefined-menu-dropdown li{
+padding:2px 5px;
+}
+#color_gradeint_tool  ul.undefined-menu-dropdown {
+  list-style: none;
+  padding: 0;
+}
+.gradientPicker-ctrlPts{
+	background: none repeat scroll 0 0 rgba(255, 255, 255, 0.514);
+	bottom: -1px !important;
+	padding: 4px 0;
+}
+
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+    font-family: Verdana,Arial,sans-serif;
+    font-size: 0.6em;
+    padding: 0px !important;
+    font-weight: bold;
+}
+.ui-accordion .ui-accordion-content {
+    padding: 1em 0.5em !important;
+}
+.tools .selectSLider {
+    width: 46%;
+    float: right;
+    margin: 0 2%;
+}
+
+body > .ui-dialog {
+    transform-origin: top right;
+/*
+    transform: scale(.6) ;
+*/
+}
+
+body > .ui-dialog:hover {
+    transform: scale(1) ;
+}
