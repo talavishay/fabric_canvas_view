@@ -1,5 +1,8 @@
 name = fabric.js canvas view
 core = 7.x
+dependencies[] = jquery_update
+dependencies[] = image
+dependencies[] = entity
 
 stylesheets[all][] = css/fabric_canvas_view.css
 scripts[] = js/fabric_canvas_view.js

@@ -1,16 +1,36 @@
+function dataURItoBlob(dataURI) {
+    // convert base64 to raw binary data held in a string
+    var byteString = atob(dataURI.split(',')[1]);
+ 
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+ 
+    // write the bytes of the string to an ArrayBuffer
+    var arrayBuffer = new ArrayBuffer(byteString.length);
+    var _ia = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < byteString.length; i++) {
+        _ia[i] = byteString.charCodeAt(i);
+    }
+ 
+    var dataView = new DataView(arrayBuffer);
+    var blob = new Blob([dataView], { type: mimeString });
+    return blob;
+}
 jQuery(document).ready(function(){
 	//fff();
-	if(Drupal.settings.canvas_view){
-		//misc
-		//jQuery("#page-title").css({"position":"absolute","top":"-70px"});
-		jQuery("#page-title,#breadcrumb").remove();
-		//jQuery.event.props.push('dataTransfer');
-		jQuery("#ui-accordion-1-header-0").click();
-		//misc ## END
+	//if(!Drupal.settings.canvas_view.canvas_view_field){
+		////misc
+		////jQuery("#page-title").css({"position":"absolute","top":"-70px"});
+		//jQuery("#page-title,#breadcrumb").remove();
+		////jQuery.event.props.push('dataTransfer');
+		//jQuery("#ui-accordion-1-header-0").click();
+		////misc ## END
 		
-		Drupal.settings.canvas_view.dom_parent = jQuery("#content .tabs").last();
-		init(Drupal.settings.canvas_view.dom_parent );
-	}
+		//Drupal.settings.canvas_view.dom_parent = jQuery("#content .tabs").last();
+		//if(!jQuery(".page-node-edit").length && jQuery(".page-node").length){
+			//init(Drupal.settings.canvas_view.dom_parent );
+		//}
+	//}
 });
 // init 
 function init_fabric(){
@@ -53,48 +73,57 @@ function init_fabric(){
 	fabric.Object.prototype.cornerColor = 'green';
 	fabric.Object.prototype.cornerSize = 20;
 	fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
+	fabric.Canvas.prototype.selection = false;
 }
-function init(parent) {
-	init_fabric();
-	draw_stage(parent);
+function init(id, canvas_profile) {
+	if(canvas_profile){
 	
-	var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();      
+	init_fabric();
+	
+	var canvas = draw_stage(id, canvas_profile);
+	
+	//var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();
+	var json = Drupal.settings.canvas_view.json = jQuery(".field-name-body .field-item").text();      
 	
 	if(json !== ""){
-			json = JSON.parse(Drupal.settings.canvas_view.json);
-			//var object = JSON.parse(json); //use default json parser
-			Drupal.settings.canvas_view.canvas.loadFromJSON(json, function(){
-				
-				canvas_render();
-			}, function(o, object){
-			o.clipTo.replace(/width/i, o.width);
-			});
-			//window.setTimeout(function(){
-				//canvas_render();
-			//}, 10);
-			//canvas_render();
+		json = JSON.parse(Drupal.settings.canvas_view.json);
+		//var object = JSON.parse(json); //use default json parser
+		canvas.loadFromJSON(json, function(){
+			canvas_render();
+		}, function(o, object){
+			//o.clipTo.replace(/width/i, o.width);
+		});
+	} else {
+		_options = {
+		left: (canvas.width - canvas.width / 3)*Math.random(),
+		top: (canvas.height - canvas.height / 3)*Math.random(),
+		fill: getRandomColor(),
+		width: canvas.width / 3,
+		height: canvas.height / 3,
+	};
+		window.setTimeout(function(){
+			add_rect(canvas, _options);
+			canvas.renderAll();
+			//pattern();
+		},0);
 	}
-}
-function draw_stage(dom_parent){
-	dom_parent.after(jQuery('<canvas dir="rtl"  height="450" id="canvas_id"/>'));
-	 canvas = Drupal.settings.canvas_view.canvas = new fabric.Canvas('canvas_id');
-	//canvas.setHeight(500);	 
-	canvas.selection = false;
-	var scale = .6;
-	canvas.setWidth(595 * scale);
-	canvas.setHeight(842 * scale);
-	bind_events(canvas);
-	add_tools(canvas);
 	window.setTimeout(function(){
-		add_rect();
-		pattern();
-	},0);
-	
-	//canvas.on('mouse:over', function(e) {
-		//console.log(e.target);
-////		canvas_render();
-	//});
+			canvas_render();
+	}, 0);
+	return canvas;
+}
+}
+function draw_stage(id, canvas_profile){
+	//dom_parent.after(jQuery('<canvas dir="rtl"  height="450" id="canvas_id"/>'));
 
+	var _canvas = new fabric.Canvas(id);
+
+	//var scale = .6;
+	//_canvas.setWidth(canvas_profile.width * canvas_profile.canvasScale);
+	//_canvas.setHeight(canvas_profile.height * canvas_profile.canvasScale);
+	
+	//bind_events(_canvas);	
+	return _canvas;
 }
 function add_tools(canvas){
 	var wrap =  jQuery('<div/>'),
@@ -114,7 +143,7 @@ function add_tools(canvas){
 		.append(selectSLider("scale", get_select("scale", 1, 100)))
 		.append(jQuery('<div/>').css("display", "block")
 			.append(jQuery('<input type="file" multiple id="input" >'))
-			.append(jQuery('<input type="checkbox"  >'))
+			//.append(jQuery('<input type="checkbox"  >'))
 			.append(jQuery('<button id="uploadBtn">uploadBtn</button>').addClass("ui-icon-trash"))
 		)		
 		.append(jQuery('<button id="clear">clear</button>').addClass("ui-icon-trash"))
@@ -126,7 +155,12 @@ function add_tools(canvas){
 		.append(jQuery('<button class="draw">draw</button>'))
 		.append(jQuery('<button data-toggle="off" class="color"><span class="color">color</span></button>')) //farbtastic
 		.append(jQuery('<button data-toggle="off" class="color_grad"><span class="color_gradeint_preview">GRAD</span></button>'))
-		.append(jQuery('<button  id="save">save</button>'));
+		.append(jQuery('<button  id="save">save</button>'))
+		.append(jQuery('<button class="scaleY">scaleY</button>'))
+		.append(jQuery('<button class="scaleX">scaleX</button>'))
+		.append(jQuery('<button class="rotate">rotate</button>'))
+		.append(jQuery('<button class="shadow">shadow</button>'));
+
 
 	text
 		//.append(jQuery('<button class="color"><span class="color"></span></button>'))
@@ -152,18 +186,18 @@ function add_tools(canvas){
 		.append(jQuery('<br/>'))
 	
 			
-	jQuery.each(Drupal.settings.canvas_view.svg_items.animals, function(i,val){
-		var img = jQuery('<img style="width:30px;" src="/sites/all/modules/fabric_canvas_view/svg/animals/'+val+'" />');
-		svg.append(img.clone());
-		overlay.append(img.clone());
-		shapes.append(img.clone());
-	});
+	//jQuery.each(Drupal.settings.canvas_view.svg_items.animals, function(i,val){
+		//var img = jQuery('<img style="width:30px;" src="/sites/all/modules/fabric_canvas_view/svg/animals/'+val+'" />');
+		//svg.append(img.clone());
+		//overlay.append(img.clone());
+		//shapes.append(img.clone());
+	//});
 	
-	jQuery.each(Drupal.settings.canvas_view.svg_items.borders, function(i,val){
-		borders.append(jQuery('<img style="width:30px;" src="/sites/all/modules/fabric_canvas_view/svg/borders/'+val+'" />'));
+	//jQuery.each(Drupal.settings.canvas_view.svg_items.borders, function(i,val){
+		//borders.append(jQuery('<img style="width:30px;" src="/sites/all/modules/fabric_canvas_view/svg/borders/'+val+'" />'));
 		
 	
-	});
+	//});
 	borders
 		.append(jQuery('<input type="number" step="0.1"  class="yscale" value="1.2"/>'))
 		//.append(jQuery('<input type="number" step="0.1" class="xscale" value="1.2"/>'));
@@ -173,9 +207,9 @@ function add_tools(canvas){
 		.append(jQuery('<input type="number">'))
 		.append(jQuery('<input type="checkbox"  >'))
 		.append(jQuery('<button id="uploadBtn">uploadBtn</button>'))
-		.append(jQuery('<button id="rotate">rotate</button>'))
-		.append(jQuery('<button id="scaleY">scaleY</button>'))
-		.append(jQuery('<button id="scaleX">scaleX</button>'))
+		.append(jQuery('<button class="rotate">rotate</button>'))
+		.append(jQuery('<button class="scaleY">scaleY</button>'))
+		.append(jQuery('<button class="scaleX">scaleX</button>'))
 		.append(jQuery('<button data-toggle="off" class="color_grad"><span class="color_gradeint_preview">GRAD</span></button>'));
 
 		
@@ -189,8 +223,8 @@ function add_tools(canvas){
 	
 	//setup jqueryui accordion structure
 	wrap
-		//.append('<h3>general</h3>')
-		//.append(wrap_g)
+		.append('<h3>general</h3>')
+		.append(wrap_g)
 		.append('<h3>bacckground</h3>')
 		.append(bacckground)
 		.append('<h3>text</h3>')
@@ -211,22 +245,28 @@ function add_tools(canvas){
 		collapsible: true,
 		header: "h3",
 		heightStyle: "content"
-	});
-	jQuery("#sidebar-first").prepend(wrap);
-	//Drupal.settings.canvas_view.dom_parent.after(wrap_g);
-	//jQuery(wrap_g).dialog({position:{my:"right top",at:"right top"}}s/);
-	jQuery(wrap_g).dialog({
+	}).dialog({
 		closeOnEscape: false,
 		title: "tools",
 		resizable: false ,
 		position : { 	my : "right top",
-						at : "right top+30",
+						at : "left top+20",
 						of	:	window
 		},
 		create: function( event, ui ) {
+			var dialog_content = this,
+				myIcon   =  jQuery('<button style="right:15%;" class=" ui-dialog-titlebar-close">-</button>').button().on("click",function(){
+				jQuery(dialog_content).toggle();
+			});
+			jQuery(this)
+				.parent()
+				.children(".ui-dialog-titlebar")
+				.append(myIcon);
+			jQuery(this).parents(".ui-dialog").css('position', 'fixed');
 			jQuery("button", this).button({text:false});
-		}
-	});//.dialog('widget').find(".ui-dialog-titlebar").hide();;
+			jQuery('.ui-accordion-header[tabindex="0"]', this).click();
+		},
+	});//.dialog('widget').find(".ui-dialog-titlebar").hide();
 	
 	//jQuery(wrap_g).dialog({
 		 //closeOnEscape: false,
@@ -260,8 +300,6 @@ function add_tools(canvas){
 //jQuery("#color_gradeint_tool").hide();
 }
 function _file_queue(new_files){
-	//var canvas = Drupal.settings.canvas_view.canvas;
-	//var canvas_images = canvas.getObjects('image');
 	
 	var current_queue = jQuery.map(fff, function(val, i){
 		return val.name;
@@ -285,47 +323,76 @@ function _file_queue(new_files){
 	jQuery.merge(fff, tmp);
 	console.log(fff);
 }
+function _process_queue(){
+	
+}
+
 function bind_tools(context) {
 	fff = Array();
 	jQuery('#uploadBtn', 	context).on("click", 	function click_upload_btn(){
 		send(fff);
 	});
 	
-	jQuery('#background [type=file]', 		context).on("change", 	function input_chagne(e){
+	jQuery('#background [type=file]', 		context).on("change", 	function(e){
 		//if(jQuery("[type=checkbox]:checked").length !== 0){
 			_file_queue(e.target.files);
 			var file = e.target.files[0];
 			add_canvas_background_image(file,"background");
 		//}
 	});
-	jQuery('#background #rotate', 		context).on("click", 	function input_chagne(e){
+	jQuery('#background .rotate', 		context).on("click", 	function(e){
 		canvas.backgroundImage.angle += 90 ;
 		canvas_render();
 	});
-	jQuery('#background #scaleX', 		context).on("click", 	function input_chagne(e){
-		canvas.backgroundImage.scaleToWidth(canvas.width);
+	jQuery('#general .rotate', 		context).on("click", 	function input_change(e){
+		var active = canvas.getActiveObject();
+		active.set({
+			originX : "center",
+			originY : "center",
+		});
+		active.angle += 90 ;
 		canvas_render();
 	});
-	jQuery('#background #scaleY', 		context).on("click", 	function input_chagne(e){
-		canvas.backgroundImage.scaleToHeight(canvas.height);
+	jQuery('#background .scaleX', 		context).on("click", 	function(e){
+		_scale_to_fit_canvas("width", canvas.backgroundImage);
+	});
+	jQuery('#background .scaleY', 		context).on("click", 	function(e){
+		_scale_to_fit_canvas("height", canvas.backgroundImage);
+	});
+	jQuery('#general .scaleX', 		context).on("click", 	function(e){
+		_scale_to_fit_canvas("width", canvas.getActiveObject());
+	});
+	jQuery('#general .scaleY', 		context).on("click", 	function(e){
+		_scale_to_fit_canvas("height", canvas.getActiveObject());
+	});
+	jQuery('#general .shadow', 		context).on("click", 	function(e){
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas),
+			active = canvas.getActiveObject(),
+			w = Math.round(active.width/25),
+			h = Math.round(active.height/25);
+		
+		active.setShadow(w+'px '+h+'px '+w*4+'px canvas_jsona(0,0,0,1)');
 		canvas_render();
+		
+		
+		
 	});
 	jQuery('#input', 		context).on("change", 	function input_chagne(e){
-
-		var canvas = Drupal.settings.canvas_view.canvas;
-		var active = canvas.getActiveObject(); 				
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas),
+			active = canvas.getActiveObject(),
+			count = e.target.files.length;
+			
 		_file_queue(e.target.files);
-
-		if( active !== null){
-			set_active_background(file, active);
-		} else {
-			add_image(file,null);
-		}
-
+		jQuery.each(e.target.files, function(i, file){
+				//load_image(file,null);
+				loadImage(file,null);
+		});
+			canvas_render();
+		 
     }); 
 
 	jQuery("#addText", 		context).on('changed keyup', function addtextevent(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
 		var active = canvas.getActiveObject();
 		if(active === undefined){
 			if(e.keyCode == 13){
@@ -352,7 +419,11 @@ function bind_tools(context) {
 		//jQuery("#colorpicker_wrap").toggle();
 	});
 	jQuery("#clear", 		context).on('click', 	function click_clear(e){
-		Drupal.settings.canvas_view.canvas.clear();
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
+		canvas.dispose();
+		canvas.clear();
+		canvas.backgroundImage = null;
+		canvas_render();
 	});
 	jQuery("#rect", 		context).on('click', 	function click_add_rect(e){
 		add_rect();
@@ -367,10 +438,7 @@ function bind_tools(context) {
 		canvas.getActiveObject().fill = jQuery(e.currentTarget).val() ;
 		canvas_render();
 	});
-	jQuery("#delete", 		context).on('click', 	function click_delete(e){
-		Drupal.settings.canvas_view.canvas.getActiveObject().remove();
-		canvas_render();
-	});
+	jQuery("#delete", 		context).on('click', 	click_delete);
 	jQuery("#elmDown", 		context).on('click', 	function sendBackwards(e){
 		Drupal.settings.canvas_view.canvas.getActiveObject().sendBackwards();
 		canvas_render();
@@ -388,7 +456,7 @@ function bind_tools(context) {
 		add_content(Drupal.settings.canvas_view.canvas);
 	});
 	jQuery("#underline", 	context).on('click', 	function click_draw(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		//TODO: if text ?!
 		var underline = active.getTextDecoration();
@@ -402,7 +470,7 @@ function bind_tools(context) {
 		
 	});
 	jQuery("#bold", 		context).on('click', 	function click_bold(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		var bold = active.getFontWeight();
 		
@@ -414,19 +482,19 @@ function bind_tools(context) {
 		canvas_render();
 	});
 	jQuery("#alignRight", 	context).on('click', 	function click_balignRight(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		active.setTextAlign('right');
 		canvas_render();
 	});
 	jQuery("#alignCenter", 	context).on('click', 	function click_alignCenter(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		active.setTextAlign('center');
 		canvas_render();
 	});
 	jQuery("#alignLeft", 	context).on('click', 	function click_alignLeft(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		active.setTextAlign('left');
 		canvas_render();
@@ -461,11 +529,11 @@ function bind_tools(context) {
 		
 		overlay_svg(src, xscale, yscale);
 	});
-	jQuery("#general .color_grad", 	context).on('click',	function click_color_grad(e){
+	jQuery("#general .color_grad", 	context).on('click',	function click_general_color_grad(e){
 		var target = jQuery(e.target);
 		var state = target.data('toggle');
 		if (state === 'off') {
-			var id = _color_gradeint_tool();
+			var id = _color_gradeint_tool(false, target);
 			target.data('dialog_id', id);
 			target.data('toggle', "on");
 		}
@@ -475,11 +543,11 @@ function bind_tools(context) {
 			target.data('toggle', "off");
 		}
 	});
-	jQuery("#background .color_grad", 	context).on('click',	function click_color_grad(e){
-		var target = jQuery(e.target);
+	jQuery("#background .color_grad", 	context).on('click',	function click_background_color_grad(e){
+		var target = jQuery(this);
 		var state = target.data('toggle');
 		if (state === 'off') {
-			var id = _color_gradeint_tool(true);
+			var id = _color_gradeint_tool(true, target);
 			if(canvas.getItemByName("background_grad")){
 				add_canvas_background_grad(id);
 			}
@@ -493,23 +561,30 @@ function bind_tools(context) {
 		}
 	});
 	jQuery("#save", 		context).on('click', 	function click_save(e){
-		var canvas = Drupal.settings.canvas_view.canvas;
-		jQuery.ajax({
+		//send(fff);
+		_save();
+	});
+}
+function _save(){
+jQuery.ajax({
 			url : "/save_canvas_handler",
 			type : "POST",
 			data : {
-				"nid"			:	9,
+				"nid"			:	Drupal.settings.canvas_view.current_node,
 				"layout_data"	: 	JSON.stringify(canvas.toDatalessJSON())
 			},
 			success : function(d){
-				jQuery(e.currentTarget).css("background-color","green");
+				jQuery("#save").css("background-color","green");
 				window.setTimeout(function(){
-					jQuery(e.currentTarget).css("background-color","");
+					jQuery("#save").css("background-color","");
 				},2000);
+				
 				console.log(d);
 			}
 		});
-	});
+}
+function canvas_export(){
+	return JSON.stringify(canvas.toDatalessJSON());
 }
 function bind_events(canvas){
 	//dragenter  dragleave dragenter
@@ -543,22 +618,23 @@ function canvas_render(){
 	//}
 	
 	//if(Drupal.settings.canvas_view.canvas.state === false){
-		Drupal.settings.canvas_view.canvas.interval = window.setTimeout(function(){
-			var canvas = Drupal.settings.canvas_view.canvas;
+		Drupal.settings.canvas_view.interval = window.setTimeout(function(){
+			//var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 			//Drupal.settings.canvas_view.canvas.state = true;
 			//canvas.setCoords();
 			canvas.calcOffset();
 			canvas.renderAll();
-console.log('tick.');
+//console.log('tick.');
 			
 		},500);
-		Drupal.settings.canvas_view.canvas.interval = window.setTimeout(function(){
-			var canvas = Drupal.settings.canvas_view.canvas;
+		Drupal.settings.canvas_view.interval = window.setTimeout(function(){
+			//var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
+			//var canvas = pattern;
 			//Drupal.settings.canvas_view.canvas.state = true;
 			//canvas.setCoords();
 			canvas.calcOffset();
 			canvas.renderAll();
-console.log('tick.');
+//console.log('tick.');
 
 		},500);
 		//window.setTimeout(function(){
@@ -572,9 +648,8 @@ console.log('tick.');
 	//}
 }
 
-
-function add_rect(options){
-	var canvas = Drupal.settings.canvas_view.canvas;
+function add_rect(canvas, options ){
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas); 
 	_options = {
 		left: (canvas.width - canvas.width / 3)*Math.random(),
 		top: (canvas.height - canvas.height / 3)*Math.random(),
@@ -588,9 +663,8 @@ function add_rect(options){
 	canvas.setActiveObject(rect);
 	return rect;
 }
-
 function add_circle(){
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var circle = new fabric.Circle({
 			radius: canvas.width / 6,
 			fill: getRandomColor(),
@@ -625,7 +699,7 @@ function add_text(canvas, data ){
 		console.log('selected', this.text);
 	});
 	
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	canvas.add(text);
 	
 	//var l = canvas._objects.length,
@@ -640,14 +714,11 @@ function add_text(canvas, data ){
 	canvas.add(text);
 	
 }
-
-
-
 function add_canvas_background_grad(){
 	_options = {
 		//right	:	0,
 		//left	:	0,
-		fill	:	getRandomColor(),
+		//fill	:	getRandomColor(),
 		width	:	canvas.width ,
 		height	:	canvas.height ,
 		originX : "left",
@@ -657,11 +728,16 @@ function add_canvas_background_grad(){
 		name : "background_grad"
 		
 	};
-	var rect_bg = add_rect(_options);
-	rect_bg.sendToBack();
+	var bg = canvas.getItemByName("background_grad");
+	if(!bg){
+		canvas.setBackgroundImage(null);
+		var bg = add_rect(_options);
+		bg.sendToBack();
+	}
+	return bg;
 }
 function add_canvas_background_image(file){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 
 	var reader = new FileReader();
 	reader.onloadend = function(file_ready) { 
@@ -697,12 +773,16 @@ function add_canvas_background_image(file){
 			
 		} 
 		canvas.setBackgroundImage(file_ready.target.result, canvas.renderAll.bind(canvas), options);
+		var grad =canvas.getItemByName("background_grad");
+		if(grad){
+			grad.remove();
+		}
 		canvas_render();
 	};
 	reader.readAsDataURL(file);
 }
 function set_active_background(file, active){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var reader = new FileReader();
 	reader.onloadend = function(file_ready) { 
 		fabric.Image.fromURL(file_ready.target.result, function(oImg){
@@ -723,99 +803,64 @@ function set_active_background(file, active){
 	reader.readAsDataURL(file);
 
 }
-function add_image(file,target){
-	var canvas = Drupal.settings.canvas_view.canvas;
-	var imageType = /image.*/;
-	var name = file.name
-	
-	if (file.type){
-		if (!file.type.match(imageType)) {
-		  return;
-		}
-	
-	var img = document.createElement("img");
-	img.file = file;
-	
+function load_image(file, target){
 	var reader = new FileReader();
-	//reader.onload = function(e){
-	//console.log("e");
-	//console.log(e);
-	//}
-	reader.onloadend = function(file) { 
-		var image = new Image();
-
-		image.onload = function() {
-			var data = {};
-			data.width = image.width;
-			data.height = image.height;
-			
-			fabric.Image.fromURL(image.src, function(oImg){
-			if(canvas.getActiveObject() !== null){
-				//var canvas = Drupal.settings.canvas_view.canvas;
-				//var active = canvas.getActiveObject();
-				//oImg.set({
-					//originX: "left",
-					//originY: "top",
-					//angle: 30,
-					//opacity: 0.85,
-					//left: canvas.width /2,
-					//top: canvas.height/2,
-					//scaleY: (canvas.height / data.height)*0.8,
-					//scaleX: (canvas.width / data.width)*0.8,
-					//name: name,
-					//xyz : name
-				//});
-				canvas.add(oImg);
-				render_canvas();
-			} else {
-				oImg.set({
-									//originX: "left",
-						//originY: "top",
-						//angle: 30,
-						//opacity: 0.85,
-						left: canvas.width /2,
-						top: canvas.height/2,
-						scaleY: (canvas.height / data.height)*0.8,
-						scaleX: (canvas.width / data.width)*0.8,
-						name: name,
-						xyz : name	
-				});	
-				canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas));				//pattern(image,target);
-			}
-			}); 
-		image.src = this.result;
-		};
+	
+	reader.onloadend = function(file_ready) { 
+		//fabric.util.loadImage(file_ready.target.result, function(img) {
+		fabric.Image.fromURL(file_ready.target.result, function(img){
+			img.name = file.name;
+			var exif =  EXIF.getAllTags(file_ready.target.result);
+			add_image(img, target, exif);
+			reader = null;
+		});
 	}
 	reader.readAsDataURL(file);
+}
+function add_image(img, target){
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
+	
+	img.angle = 20*_rand();
+	
+	img.scaleToWidth(canvas.width*.6);
+	img.setShadow({ color: 'canvas_jsona(0,0,0,1)' });
+	canvas.add(img);
+	_active_rand_positioning(img);
+	img.setCoords();
+	canvas.setActiveObject(img);
 
-	} else {
-	   //var rand = ""+Math.random();  
-	   //var canvas = jQuery('<canvas id="rand_id_'+rand.replace(/\./, "")+'"/>') ;   
-	   //var ctx = canvas[0].getContext("2d"); 
-	   var img = dragelm[0];
-	   //ctx.drawImage(img, 10, 10); 
-	   //file = canvas[0].toDataURL("image/png");
-	   //var data = {};
-			//data.width = image.width;
-			//data.height = image.height;
-			fabric.Image.fromURL(file[0].src, function(oImg) {				
-				canvas.add(oImg);
-			},{
-			//originX: "left",
-			//originY: "top",
-			//angle: 30,
-			//opacity: 0.85,
-			left: canvas.width /2,
-			top: canvas.height/2,
-			//scaleY: canvas.height / data.height,
-			//scaleX: canvas.width / data.width,
-			//name: name,
-			//xyz : name
-			});
+}
+
+function loadImage( file ,target ) {
+	var URL = window.URL || window.webkitURL,
+		//img = new Image(),
+		url_obj = URL.createObjectURL( file );
 	
-	}
-	
-	
+	fabric.Image.fromURL(url_obj, function(img){
+			//var exif =  EXIF.getAllTags(file_ready.target.result);
+			img.name = file.name;
+			//add_image(img, target, exif);
+			add_image(img, target, null);
+			//clean up -- MEMORY issues
+			URL.revokeObjectURL( img.src );
+			img = null;
+	});
+}
+function _rand_positioning(_obj){
+	//_obj = canvas.getObjects();
+	jQuery.each(_obj, function(i, val){
+		_active_rand_positioning(val);
+	});
+}
+function _active_rand_positioning(val){
+	//var val = canvas.getActiveObject();		
+	var rand = Math.round(150*Math.random()) * (Math.random() < 0.5 ? -1 : 1);
+	val.centerH();
+	val.centerV();
+	//val.setAngel(Math.round(30*Math.random());
+	val.setTop(val.top+rand);
+	val.setLeft(val.left+(rand * Math.random() < 0.5 ? -1 : 1));
+	canvas_render();
 }
 function handleDrop_event(e){
 		console.log(e);
@@ -839,7 +884,7 @@ function handleDragstart_event(e) {
 	
 }
 function clip(){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 	if(typeof active.getClipTo() === "function"){
 		active.set({ clipTo: null});
@@ -854,13 +899,13 @@ function clip(){
 
 function pattern(url , target){
 	var url = (typeof url === "undefined") ? null : url;
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 
 	//var padding = 0;
 
 	if(url === null){
-		var url = 'http://lifebook/files/1/IMG_1228.JPG';
+		var url = '/misc/druplicon.png';
 	}
 	
     fabric.Image.fromURL(url, function(img) {
@@ -915,7 +960,7 @@ function _pattern(canvas, width, height){
 // SVG
 function  add_svg(src, xscale, yscale){
 	fabric.loadSVGFromURL(src, function(objects, options) {	
-		var canvas = Drupal.settings.canvas_view.canvas;
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var loadedObject;
 		if (objects.length >= 1) {
 			loadedObject = new fabric.PathGroup(objects, options);
@@ -925,15 +970,12 @@ function  add_svg(src, xscale, yscale){
 		
 		canvas.add(loadedObject);
 		canvas.setActiveObject(loadedObject);
-		//loadedObject.centerH();
-		//loadedObject.centerV();
-		
 		canvas_render();
 	});
 	
 }
 function  overlay_svg(src, xscale, yscale){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 		
 	fabric.loadSVGFromURL(src, function(objects, options) {	
@@ -987,7 +1029,7 @@ group1.on('selected', function(e) {
 	})
 }
 function clip_svg(src,yscale,xscale){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 	//if(active.clipTo === null){
 	fabric.loadSVGFromURL(src, function(objects, options) {
@@ -1001,6 +1043,7 @@ function clip_svg(src,yscale,xscale){
 		loadedObject.set({
 			left: 0,
 			top	: 0,
+			//angle : active.angle,
 			scaleY: (active.height / loadedObject.height) ,//* yscale,
 			scaleX: (active.width / loadedObject.width) //* xscale,
         });
@@ -1015,7 +1058,7 @@ function clip_svg(src,yscale,xscale){
 	});
 }
 
-//add_tools helpers
+//add_tools helpers / ui 
 function get_select(name, min, max) {
 	var select= jQuery('<select name="'+name+'" id="'+name+'"/>');
 	for(var i=min; i<=max; i++){
@@ -1057,7 +1100,7 @@ function selectSLider(label,select){
 	return wrap;
 }
 function sliderAction(name,val,active){
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 	
 	if(typeof active === "object"){		
@@ -1078,7 +1121,7 @@ function sliderAction(name,val,active){
 	}
 }
 
-//add on tools 
+//add on tools / plugins
 function handleFiles(files) {
 	//jQuery('#input').fileupload({
 		//url: '/file_upload_handler',
@@ -1126,26 +1169,42 @@ function handleFiles(files) {
 		//reader.readAsDataURL(file);
 	//}
 }
-
 function handle_duplicate_files(dup){
 	console.log("duplicate file "+dup.name+" removed from file list");
 }
 function send(files){
+	if(fff.length){
 	jQuery('<input type="file"/>').fileupload().fileupload('add', {
 		files: files, 
 	    singleFileUploads: false,   // << send all together, not single
 		url: '/file_upload_handler',
+		formData: {nid: Drupal.settings.canvas_view.current_node},
 		success: function(d,x){
 				d = JSON.parse(d);
-				jQuery(d.files).each(function(i, val){
-					console.log(val) 
-					var item = Drupal.settings.canvas_view.canvas.getItemByName(val.name);
-					item.setAttribute("src", val.url);
+				jQuery(d).each(function(i, val){
+					
+					var name = val.filename;//.replace(/\ \(\d\)/, "");
+					//remove uploaded files from queue
+					fff = jQuery.map(fff, function(file,i){
+						if(file.name === name){				
+							return null;
+						} else {
+							return file;
+						}
+					});
+					//replace img source in canvas to the uploaded url
+					var item = Drupal.settings.canvas_view.canvas.getItemByName(name);
+					if(item){
+						item.setSrc(val.url);
+						item.name = "fid_"+val.fid;
+					};
 					canvas_render();
 					
-			});		
+			});	
+			_save();
 		}
 	});
+	}
 }
 function _colorpicker(){
 	var id = "colorpicker_wrap";
@@ -1165,7 +1224,7 @@ function _colorpicker(){
 					colorpicker = jQuery('<div id="colorpicker"></div>').ColorPicker({
 						flat: true,
 						onHide: function (colpkr) {	return false;},
-						onChange:  function (hsb, hex, rgb) {	
+						onChange:  function (hsb, hex, canvas_json) {	
 							colorpicker_handler(hex);
 							return false;	},
 						onSubmit:  function (colpkr) {	return false;	}
@@ -1178,24 +1237,36 @@ function _colorpicker(){
 	return id;
 	//return colorpicker_wrap.append(colorpicker);
 }
-function _color_gradeint_tool(background){		
-	var id = "color_gradeint_tool";
-	var background = typeof background === "undefined" ? false : background;
-	//var grad_dir = jQuery('<select id="grad_dir"/>');
-	//jQuery([{name:"topToBottom", icon : "ui-icon-arrowthick-2-n-s"}, 
-			//{name:"leftToRight", icon : "ui-icon-script"},
-			//{name:"topLeftToBottomRight", icon : "ui-icon-script"}, 
-			//{name:"topRightToBottomLeft", icon : "ui-icon-script"}
-			//]).each(function(i,val){
-		//grad_dir.append('<option  value="'+val.name+'">'+val.name+'</option>');
-	//});
-	var grad_dir = jQuery('<div id="grad_dir"/>');
-	jQuery([{name:"topToBottom", icon : "ui-icon-arrowthick-2-n-s", toggle:"on"}, 
+function _get_grad(background){
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas),
+		options = { colorStops	: ["black 0%", "white 100%"],
+					type		: "bottom"		};
+	if(background){
+		var target = canvas.getItemByName("background_grad");
+	} else {
+		var target = canvas.getActiveObject();
+	}
+	if(typeof target.fill === "object" && target.fill.colorStops ){
+		var o = [];
+		jQuery.each(target.fill.colorStops, function(i, val){
+			o.push(val.color+" "+(100*val.offset)+"%");
+		})
+		options.colorStops = o;
+		options.coords = target.fill.coords;
+	}
+	return options;
+}
+function _color_gradeint_tool(background, btn){		
+	var id = "color_gradeint_tool",
+		background = typeof background === "undefined" ? false : background,
+		grad_dir = jQuery('<div id="grad_dir"/>'),
+		button = btn;
+	jQuery([{name:"topToBottom", icon : "ui-icon-arrowthick-2-n-s", toggle:"off"}, 
 			{name:"leftToRight", icon : "ui-icon-arrowthick-2-e-w", toggle:"off"},
 			{name:"topLeftToBottomRight", icon : "ui-icon-arrowthick-2-se-nw", toggle:"off"}, 
 			{name:"topRightToBottomLeft", icon : "ui-icon-arrowthick-2-ne-sw", toggle:"off"}
 			]).each(function(i,val){
-		grad_dir.append('<button data-toggle="'+val.toggle+'" data-icon="'+val.icon+'" data-value="'+val.name+'">'+val.name+'</button>');
+				grad_dir.append('<button data-toggle="'+val.toggle+'" data-icon="'+val.icon+'" data-value="'+val.name+'">'+val.name+'</button>');
 	});
 	var color_gradeint_tool = jQuery('<div id="'+id+'"></div>')
 			.append('<button class="close">close</button>')
@@ -1205,30 +1276,26 @@ function _color_gradeint_tool(background){
 		jQuery(".color_grad").data("toggle","off");
 	});
 	
-	
-							
-	//jQuery('#grad_dir-button', color_gradeint_tool).click(function(){
-		//jQuery('.undefined-menu', color_gradeint_tool).toggle();
-	//});
 	var d = color_gradeint_tool.dialog({
 			resizable: false,
 			height: 200,
-			open: function( event, ui ) {
+			open: function( event, ui ,btn) {
 				window.setTimeout(function(color_gradeint_tool){
-					jQuery("#color_gradeint_tool", color_gradeint_tool).gradientPicker({
+					var colorPoints = _get_grad(background);
+					grd =jQuery("#color_gradeint_tool", color_gradeint_tool).gradientPicker({
 					   change: function(p,s){
-							console.log(background);
 							handle_gradient(p,s,background);
 							return false;
 						},
-					   fillDirection: "bottom",
-					   controlPoints: ["black 0%", "white 100%"]
+					   fillDirection: colorPoints.type,
+					   controlPoints: colorPoints.colorStops,
+					   generateStyles: false
+					   
 					});		
 				});
-					
 			}
 	}).dialog("widget");
-	jQuery(".ui-dialog-titlebar", d).remove();
+	//jQuery(".ui-dialog-titlebar", d).remove();
 	jQuery(".close", d).button();
 	
 	jQuery('#grad_dir button').each(function(i, val){
@@ -1241,7 +1308,7 @@ function _color_gradeint_tool(background){
 	}).on("click", function(e){
 			jQuery("#grad_dir button").data('toggle', "off");
 			jQuery(this).data('toggle', "on");
-			console.log(jQuery(this).data('toggle'));
+			//console.log(jQuery(this).data('toggle'));
 	});
 	
 	//icons: {
@@ -1269,14 +1336,41 @@ function _color_gradeint_tool(background){
 	//});
 	
 	
-	console.log(d);
+	//console.log(d);
 	
 	return id;
+}
+function _get_grad_coords(target){
+	var dir = jQuery("#grad_dir button").filter(function() { 
+				return jQuery(this).data("toggle") == "on" ;
+		}).data("value");
+	if(typeof target.fill === "object" && target.fill.colorStops &&  dir === null  ){
+		target.fill.grad_init = true;
+		return target.fill.coords;
+	} else {
+		var coords = {x1 : 0,	y1 : 0,	x2 : 0,	y2 : 0	};
+		
+		if(dir === "leftToRight" ){
+			coords.x2 = target.width;
+		}
+		if(dir === "topToBottom" || dir === null ){
+			coords.y2 = target.height;
+		}
+		if(dir === "topRightToBottomLeft" ){
+			coords.x1 = target.width;
+			coords.y2 = target.height;
+		}
+		if(dir === "topLeftToBottomRight" ){
+			coords.x1 = target.width;
+			coords.y1 = target.height;
+		}
+		return coords;
+	}
 }
 function colorpicker_handler(v){
 	//jQuery(".color:visible").css("background-color", v);
 	jQuery("span.color").css("background-color", '#'+v).text("");
-	var canvas = Drupal.settings.canvas_view.canvas;
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	var active = canvas.getActiveObject();
 	
 	if(typeof(active) !== "undefined"){
@@ -1284,78 +1378,64 @@ function colorpicker_handler(v){
 		canvas_render();
 	}
 }
-function handle_gradient(points, styles,background){
+function handle_gradient(points, styles, background){
 	var colorStops = {},  colorOptions = {};
 		canvas = Drupal.settings.canvas_view.canvas,
-		active = canvas.getActiveObject(),
-		typeof_active = typeof active,
-		type = "linear",
-		colorOptions = {
-			x1 : 0,
-			y1 : 0,
-			x2 : 0,
-			y2 : 0
-		},
-		//dir = jQuery("#grad_dir").selectmenu("value");
-		dir = jQuery("#grad_dir button").filter(function() { 
-				return jQuery(this).data("toggle") == "on" 
-		}).data("value");
+		target = canvas.getActiveObject(),
+		background_object = canvas.getItemByName("background_grad"),
+		background = (typeof background === "undefined") ? false : background,
+		type = "linear";
 		
-		//console.log(dir);
-		//dir = "topToBottom";
-		if(typeof_active === "object"){
-		//	dir = (dir === "" )? "topToBottom" : dir;
-			
-			if(dir === "leftToRight" ){
-				colorOptions.x2 = active.width;
-			}
-			
-			if(dir === "topToBottom" ){
-				colorOptions.y2 = active.height;
-			}
-			if(dir === "topRightToBottomLeft" ){
-				colorOptions.x1 = active.width;
-				colorOptions.y2 = active.height;
-			}
-			if(dir === "topLeftToBottomRight" ){
-				colorOptions.x1 = active.width;
-				colorOptions.y1 = active.height;
-				colorOptions.x2 = 0;
-				colorOptions.y2 = 0;
-			}
-			
-			//if(dir === "topToBottom" ){
-			//leftTop_rightBottom
-			
-			jQuery(points).each(function(i, val ){	
-				colorStops[val.position] = val.color;	
-			});		
-			//colorOptions.x1 = active.width/2;
-			//colorOptions.y1 = active.height / 2;
-			//colorOptions.x2 = active.width;
-			//colorOptions.y2 = active.height / 2;
-
-			if(type === "radial"){
-				//colorOptions.r1 = active.width/4;
-				colorOptions.r2 = active.width;
-			}
-
-			colorOptions.colorStops = colorStops ;
-			colorOptions.type = type ;
-			Drupal.settings.canvas_view.coloroptions = colorOptions;
-			var background = (typeof background === "undefined") ? false : background;
-
-			if(background){
-				canvas.getItemByName("background_grad").setGradient('fill', colorOptions);
-			} else {
-				active.setGradient('fill', colorOptions);
-				
-			}
-			canvas_render();
+	// handle canvas background or target object
+	if(background === true){
+		if(background_object === false){
+			target = background_object = add_canvas_background_grad();
+		} else {
+			target = background_object;
 		}
+	}	
+	jQuery(points).each(function(i, val ){	
+		colorStops[val.position] = val.color;	
+	});	
+	
+	// handle radial gradient
+	if(type === "radial"){
+		colorOptions.r2 = target.width;
+	}
+	
+	colorOptions = _get_grad_coords(target);
+	colorOptions.colorStops = colorStops ;
+	colorOptions.type = type ;
+
+	target.setGradient('fill', colorOptions);
+	canvas_render();
+	
 }
 
 //misc
+function _rand(){
+ return Math.round(Math.random())* Math.random() < 0.5 ? -1 : 1;
+}
+function _get_random_object_options(canvas){
+	return {
+			left: (canvas.width - canvas.width / 3)*Math.random(),
+			top: (canvas.height - canvas.height / 3)*Math.random(),
+			fill: getRandomColor(),
+			width: (canvas.width / 3)*Math.random(),
+			height: (canvas.height / 3)*Math.random()
+	};
+};
+function _scale_to_fit_canvas(dir, target){
+	var canvas = Drupal.settings.canvas_view.getActiveCanvas();
+	if(dir === "width"){
+		target.scaleToWidth(canvas.width);
+	};
+	if(dir === "height"){
+		target.scaleToHeight(canvas.height);
+	};
+	canvas_render();
+}
+function _file_to_dataurl(file){}
 function getRandomColor() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
@@ -1364,40 +1444,44 @@ function getRandomColor() {
     }
     return color;
 }
-//function fff(){
-//fabric.util.object.extend(fabric.Canvas.prototype, {
-    //_searchPossibleTargets: function(e) {
 
-        //// Cache all targets where their bounding box contains point.
-        //var target,
-            //pointer = this.getPointer(e);
 
-        ///*
-        //if (this._activeObject && this._checkTarget(e, this._activeObject, pointer)) {
-            //this.relatedTarget = this._activeObject;
-            //return this._activeObject;
-        //}
-        //*/
+function save_canvas(){
+	var current_images = get_images(),
+		text_items = get_texts();
+	
+	sync_files();
+	
+}
+function click_delete(e){
+	var active = Drupal.settings.canvas_view.canvas.getActiveObject()
+	if(typeof active.name === "string" && active.type === "image"){
+		//remove file from upload queue
+		fff = jQuery.map(fff, function(file,i){
+			if(file.name === active.name){				
+				return null;
+			} else {
+				return file;
+			}
+		});
+		//remove file from server
+		if(active.name.match(/^fid/) !== null){
+			_delete_fid(active.name.replace(/^fid_/, ""));
+		}
+	}
+	active.remove();
+	if(canvas.getActiveGroup()){
+      canvas.getActiveGroup().forEachObject(function(o){ canvas.remove(o) });
+      canvas.discardActiveGroup().renderAll();
+    } else {
+      canvas.remove(canvas.getActiveObject());
+      canvas_render();
+    }
 
-        //var i = this._objects.length;
-
-        //while(i--) {
-            //if (this._checkTarget(e, this._objects[i], pointer)){
-                //this.relatedTarget = this._objects[i];
-                //target = this._objects[i];
-                //break;
-            //}
-        //}
-
-        //return target;
-    //}
-//});
-//}
-
-//function get_controls(){
-	//return {
-		//buttons : ["up", "down", "left", "right", "delete"],
-		
-			
-	//};
-//}
+	
+}
+function _delete_fid(fid){
+	jQuery.get('/delete_fid/'+fid+'/'+Drupal.settings.canvas_view.current_node, function(res){
+			return res;
+	});
+}
