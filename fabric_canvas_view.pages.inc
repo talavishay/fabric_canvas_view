@@ -63,11 +63,72 @@ $upload_handler = new CustomUploadHandler(array(
 }
 
 function save_canvas_handler(){
-	$nid =  intval($_POST["nid"]);
-	$x =  entity_metadata_wrapper('node', $nid);
-	$x->field_layout_data = $_POST["layout_data"];
-	$x->save();
-	$info = $x->getPropertyInfo() ;
+	$node =  node_load($_POST["nid"]);
+	$node->field_canvas["und"]["0"]["rgb"] = $_POST["layout_data"];
+	node_save($node);
+}
 
+function _save_upload(){
+	global $user;
+	$success = array();
+    $num_files = count($_FILES['files']['name']);
+	$nid =  is_int(intval($_POST["nid"])) ? $_POST["nid"] : 0 ;
+    
+    for ($i = 0; $i < $num_files; $i++) {
+        $file = file_save_upload($i, array(),'private://');
+        if($nid){
+//        	file_usage_add($file, 'file', 'node', $nid);
+        	_add_image_to_node($file, $nid);
+        	$file->url = file_create_url($file->uri);
+        }
+        if ($file) {
+        	$success[$i] = $file;
+        } else {
+            $success[$i] = t('Failed to write the uploaded file to the site\'s private file folder.');
+        }   
+    }
+    if($num_files === 0){
+    	$success = "no files in upload request";
+    }
+	echo json_encode($success);
+}
+function _uri_2_url($fid){
+	$file = file_load($fid);
+	echo  file_create_url($file->uri);
 	
+}
+function filter_delete($var){
+	global $fid;
+	if($var){
+	return false;
+	}else{
+	return true;
+		
+	}	
+}
+function _delete_fid($fid,$nid){
+	$res = file_delete(file_load($fid), true);
+if($res){
+	$node_wrapper = entity_metadata_wrapper('node', $nid);
+	$img = $node_wrapper->field_img->raw();
+	//$filtered_img = array_filter($img, function($elem) use($fid){
+	$filtered_img = array_filter($img, function($elem) use($fid){
+		if($elem["fid"] === $fid){	
+			return false;
+		} else {
+			return true;
+		}
+    }); 
+	$node_wrapper->field_img = $filtered_img ;
+	$node_wrapper->save();
+	echo $res;
+}
+}
+function _add_image_to_node($file, $nid){
+	
+	$node_wrapper = entity_metadata_wrapper('node', $nid);
+	//$info = $node_wrapper->getPropertyInfo();
+	
+	$node_wrapper->field_img[] = array('fid' => $file->fid);
+	$node_wrapper->save();
 }

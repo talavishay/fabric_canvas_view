@@ -1,48 +1,4 @@
-Drupal.settings.canvas_view = {
-		getActiveCanvas : function(){
-			return jQuery(".canvas-container.active canvas[id]")[0].fabric;
-		}
-};
-
-if (!Array.prototype.findIndex) {
-  Array.prototype.findIndex = function(predicate) {
-    if (this == null) {
-      throw new TypeError('Array.prototype.findIndex called on null or undefined');
-    }
-    if (typeof predicate !== 'function') {
-      throw new TypeError('predicate must be a function');
-    }
-    var list = Object(this);
-    var length = list.length >>> 0;
-    var thisArg = arguments[1];
-    var value;
-
-    for (var i = 0; i < length; i++) {
-      value = list[i];
-      if (predicate.call(thisArg, value, i, list)) {
-        return i;
-      }
-    }
-    return -1;
-  };
-}
-
 function init_fabric(){
-	/**
-	 * Item name is non-unique
-	 */
-	fabric.Canvas.prototype.getItemsByLifebookType = function(name) {
-	  var objectList = [],
-		  objects = this.getObjects();
-
-	  for (var i = 0, len = this.size(); i < len; i++) {
-		if (objects[i].lifebook_type && objects[i].lifebook_type === name) {
-		  objectList.push(objects[i]);
-		}
-	  }
-
-	  return objectList;
-	};
 	/**
 	 * Item name is non-unique
 	 */
@@ -77,109 +33,51 @@ function init_fabric(){
 			return object;
 		}
 	};
+	fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
+	fabric.Object.prototype.borderColor = 'red';
+	fabric.Object.prototype.cornerColor = 'green';
+	fabric.Object.prototype.cornerSize = 20;
+	fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
+	fabric.Canvas.prototype.selection = false;
+}
+function init(id, canvas_profile) {
+	if(canvas_profile){
 	
-	//fabric.NamedIText = fabric.util.createClass(fabric.IText, {
-
-	  //type: 'named-itext',
-
-	  //initialize: function(element, options) {
-		//this.callSuper('initialize', element, options);
-		//options && this.set('name', options.name);
-	  //},
-
-	  //toObject: function() {
-		//return fabric.util.object.extend(this.callSuper('toObject'), { name: this.name });
-	  //}
-	//});
-	//fabric.NamedIText.fromObject = function(object, callback) {
-		//callback && callback(new fabric.NamedIText(img, object));
-	//};
-	//fabric.NamedIText.async = true;
-	// ##
-		
-		// Save additional attributes in Serialization
-		fabric.Object.prototype.toObject = (function (toObject) {
-			return function () {
-				return fabric.util.object.extend(toObject.call(this), {
-					lifebook_type: this.lifebook_type,
-					lifebook_data: this.lifebook_data,
-					
-				});
-			};
-		})(fabric.Object.prototype.toObject);
-		
-		var LabeledRect = fabric.util.createClass(fabric.IText, {
-
-		  type: 'labeledRect',
-
-		  initialize: function(options) {
-			options || (options = { });
-
-			this.callSuper('initialize', options);
-			this.set('label', options.label || '');
-		  },
-
-		  toObject: function() {
-			return fabric.util.object.extend(this.callSuper('toObject'), {
-			  label: this.get('label')
-			});
-		  },
-
-		  _render: function(ctx) {
-			this.callSuper('_render', ctx);
-
-			ctx.font = '20px Helvetica';
-			ctx.fillStyle = '#333';
-			ctx.fillText(this.label, -this.width/2, -this.height/2 + 20);
-		  }
+	init_fabric();
+	
+	var canvas = draw_stage(id, canvas_profile);
+	
+	//var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();
+	var json = Drupal.settings.canvas_view.json = jQuery(".field-name-body .field-item").text();      
+	
+	if(json !== ""){
+		json = JSON.parse(Drupal.settings.canvas_view.json);
+		//var object = JSON.parse(json); //use default json parser
+		canvas.loadFromJSON(json, function(){
+			canvas_render();
+		}, function(o, object){
+			//o.clipTo.replace(/width/i, o.width);
 		});
-		
-		// ##
-		fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
-		fabric.Object.prototype.borderColor = 'red';
-		fabric.Object.prototype.cornerColor = 'green';
-		fabric.Object.prototype.cornerSize = 20;
-		fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
-		fabric.Canvas.prototype.selection = false;
+	} else {
+		_options = {
+		left: (canvas.width - canvas.width / 3)*Math.random(),
+		top: (canvas.height - canvas.height / 3)*Math.random(),
+		fill: getRandomColor(),
+		width: canvas.width / 3,
+		height: canvas.height / 3,
+	};
+		window.setTimeout(function(){
+			add_rect(canvas, _options);
+			canvas.renderAll();
+			//pattern();
+		},0);
 	}
-//function init(id, canvas_profile) {
-	//if(canvas_profile){
-	
-	//init_fabric();
-	
-	//var canvas = draw_stage(id, canvas_profile);
-	
-	////var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();
-	////var json = Drupal.settings.canvas_view.json = jQuery(".field-name-body .field-item").text();      
-	
-	//if(json !== ""){
-		//json = JSON.parse(Drupal.settings.canvas_view.json);
-		////var object = JSON.parse(json); //use default json parser
-		//canvas.loadFromJSON(json, function(){
-			//canvas_render();
-		//}, function(o, object){
-			////o.clipTo.replace(/width/i, o.width);
-		//});
-	//} else {
-		//_options = {
-		//left: (canvas.width - canvas.width / 3)*Math.random(),
-		//top: (canvas.height - canvas.height / 3)*Math.random(),
-		//fill: getRandomColor(),
-		//width: canvas.width / 3,
-		//height: canvas.height / 3,
-	//};
-		//window.setTimeout(function(){
-			//add_rect(canvas, _options);
-			//canvas.renderAll();
-			////pattern();
-		//},0);
-	//}
-	//window.setTimeout(function(){
-			//canvas_render();
-	//}, 0);
-	//return canvas;
-//}
-//}
+	window.setTimeout(function(){
+			canvas_render();
+	}, 0);
+	return canvas;
+}
+}
 function draw_stage(id, canvas_profile){
 	//dom_parent.after(jQuery('<canvas dir="rtl"  height="450" id="canvas_id"/>'));
 
@@ -329,7 +227,7 @@ function add_tools(canvas){
 				.parent()
 				.children(".ui-dialog-titlebar")
 				.append(myIcon);
-			jQuery(this).parents(".ui-dialog").css('position', 'fixed').once();
+			//jQuery(this).parents(".ui-dialog").css('position', 'fixed').once();
 			jQuery("button", this).button({text:false});
 			jQuery('.ui-accordion-header[tabindex="0"]', this).click();
 			
@@ -489,7 +387,7 @@ function bind_tools(context) {
 		//jQuery("#colorpicker_wrap").toggle();
 	});
 	jQuery("#clear", 		context).on('click', 	function click_clear(e){
-		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas().ref;
 		canvas.dispose();
 		canvas.clear();
 		canvas.backgroundImage = null;
@@ -510,12 +408,12 @@ function bind_tools(context) {
 	});
 	jQuery("#delete", 		context).on('click', 	click_delete);
 	jQuery("#elmDown", 		context).on('click', 	function sendBackwards(e){
-		Drupal.settings.canvas_view.getActiveCanvas().getActiveObject().sendBackwards();
+		Drupal.settings.canvas_view.canvas.getActiveObject().sendBackwards();
 		canvas_render();
 	});
 	jQuery("#elmUp", 		context).on('click', 	function bringForward(e){
 		//Drupal.settings.canvas_view.canvas.getActiveObject().bringForward();
-		Drupal.settings.canvas_view.getActiveCanvas().getActiveObject().bringToFront();
+		Drupal.settings.canvas_view.canvas.getActiveObject().bringToFront();
 		canvas_render();
 	});
 	jQuery("#clip", 		context).on('click', 	function click_clip(e){
@@ -523,10 +421,10 @@ function bind_tools(context) {
 		clip();
 	});
 	jQuery(".draw", 		context).on('click', 	function click_draw(e){
-		add_content(Drupal.settings.canvas_view.getActiveCanvas());
+		add_content(Drupal.settings.canvas_view.canvas);
 	});
 	jQuery("#underline", 	context).on('click', 	function click_draw(e){
-		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var active = canvas.getActiveObject();
 		//TODO: if text ?!
 		var underline = active.getTextDecoration();
@@ -569,7 +467,7 @@ function bind_tools(context) {
 		active.setTextAlign('left');
 		canvas_render();
 	});
-	jQuery("#svg img", 		context).on('click', 	function click_svg(e){
+	jQuery("#svg img", 		context).on('click', 	function click_save_svg(e){
 		var src = jQuery(e.currentTarget).attr("src");
 		var xscale = jQuery("#svg #xscale").val();
 		var yscale = jQuery("#svg #yscale").val();
@@ -630,52 +528,48 @@ function bind_tools(context) {
 			target.data('toggle', "off");
 		}
 	});
-	jQuery("#save", 		context).once().on('click', 	function click_save(e){
+	jQuery("#save", 		context).on('click', 	function click_save(e){
+		//send(fff);
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
 		_save();
 	});
 }
 _save = function _save(item){
-	jQuery(".canvas-container.activated canvas[id]").each(function(i, val){  
-	//console.log(val.fabric);
-		var canvas = val.fabric,
-			field_name = canvas.lowerCanvasEl.dataset.field_name,
-			id = canvas.lowerCanvasEl.dataset.entity_id,
-			delta = canvas.lowerCanvasEl.dataset.entity_delta;
-			
-		if(jQuery("form.node-form").length >= 1 ||jQuery(".page-form").length >= 1){
-			//console.log("whitin _save");
-			jQuery('.field-type-json input[data-entity_delta="'+delta+'"][data-entity_id="'+id+'"]').val(canvas_export(canvas));
-		} else {
-			jQuery.ajax({
-						url : "/save_canvas_field_handler/"+id+"/"+delta,
-						type : "POST",
-						data : {
-							"field_name"	:	field_name,
-							"nid"			:	id,
-							"delta"			:	delta,
-							"layout_data"	: 	canvas_export(canvas)
-						},
-						success : function(d){
-							jQuery(canvas.wrapperEl).addClass("saved");
-							window.setTimeout(function(){
-								jQuery(canvas.wrapperEl).removeClass("saved");
-							},3000);
-							
-							jQuery('.class_preview [data-entity_id='+id+']').replaceWith(d);
-							
-							Drupal.attachBehaviors();
-							
-						}
-			});
-		}
-	});
+	var item = Drupal.settings.canvas_view.getActiveCanvas();
+	if(jQuery("form.node-form").length >= 1){
+		console.log("whitin _save");
+		//Drupal.settings.canvas_view_field_data.forEach(function(val, i){
+		//	if(val.activated){
+				jQuery('.field-type-json input[data-entity_delta="'+item.delta+'"][data-entity_id="'+item.id+'"]').val(canvas_export(item.ref));
+			//}
+		//});
+	} else {
+		jQuery.ajax({
+					url : "/save_canvas_field_handler/"+item.canvas_profile.id+"/"+item.canvas_profile.delta,
+					type : "POST",
+					data : {
+						"nid"			:	item.canvas_profile.id,
+						"delta"			:	item.canvas_profile.delta,
+						"layout_data"	: 	canvas_export(item.ref)
+					},
+					success : function(d){
+						jQuery("#save").css("background-color","green");
+						window.setTimeout(function(){
+							jQuery("#save").css("background-color","");
+						},2000);
+						
+						console.log(d);
+						jQuery(".node-form").submit();
+					}
+		});
+	}
 }
 function canvas_export(canvas){
-	//if(canvas.activated){
-		//return JSON.stringify(canvas.ref.toDatalessJSON());
-	//} else {
+	if(canvas.activated){
+		return JSON.stringify(canvas.ref.toDatalessJSON());
+	} else {
 		return JSON.stringify(canvas.toDatalessJSON());
-	//}
+	}
 }
 function bind_events(canvas){
 	//dragenter  dragleave dragenter
@@ -702,19 +596,39 @@ function bind_events(canvas){
  * is at a differnt position the the "new" unbolded text... 
  */
 function canvas_render(){
-	var canvas = Drupal.settings.canvas_view.getActiveCanvas();
-		//canvas.calcOffset();
-		canvas.renderAll();
+			
+	Drupal.settings.canvas_view.interval = window.setTimeout(function(){
+			var canvas = jQuery.each(Drupal.settings.canvas_view_field_data, function(i, val){
+				if(val.active | val.activated){
+					return	val;
+					console.log(val);
+					
+				}
+			})[0];
+			canvas.calcOffset();
+			canvas.renderAll();
+	},500);
+	Drupal.settings.canvas_view.interval = window.setTimeout(function(){
+			var canvas = jQuery.each(Drupal.settings.canvas_view_field_data, function(i, val){
+				if(val.active | val.activated){
+					return	val;
+					console.log(val);
+					
+				}
+			})[0];
+			canvas.calcOffset();
+			canvas.renderAll();
+	},500);
 }
+
 function add_rect(canvas, options ){
-	var canvas = Drupal.settings.canvas_view.getActiveCanvas(); 
+	//var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas); 
 	_options = {
 		left: (canvas.width - canvas.width / 3)*Math.random(),
 		top: (canvas.height - canvas.height / 3)*Math.random(),
 		fill: getRandomColor(),
 		width: canvas.width / 3,
 		height: canvas.height / 3,
-		name : "XXXX"
 	};
 	var options = (typeof options === "undefined") ? _options : options;
 	var rect = new fabric.Rect(options);
@@ -723,7 +637,7 @@ function add_rect(canvas, options ){
 	return rect;
 }
 function add_circle(){
-		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
+		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 		var circle = new fabric.Circle({
 			radius: canvas.width / 6,
 			fill: getRandomColor(),
@@ -740,14 +654,13 @@ function add_content(canvas){
 	//draw_rect(canvas);
 	//set_background_img(canvas);
 }
-function add_text(data ){
+function add_text(canvas, data ){
 	var data = typeof data === "undefined" ? 'hello world': data;
 	
 	var text = new fabric.IText(data, { 
 		textAlign: "right",
 		left: 100, 
-		top: 100,
-		name:"bab"
+		top: 100 
 	});
 	text.on('changed', function(e) {
 		jQuery("#addText").val(this.text);
@@ -761,10 +674,18 @@ function add_text(data ){
 	
 	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
 	canvas.add(text);
-	_rand_positioning(text)
+	
+	//var l = canvas._objects.length,
+		//current = l -1;
+	
 	canvas.setActiveObject(text);
-		
-	return text;
+	//canvas.setActiveObject(canvas._objects[current]);
+	
+	text.on('', function(e) {
+		console.log('changed', text, e);
+	});
+	canvas.add(text);
+	
 }
 function add_canvas_background_grad(){
 	_options = {
@@ -900,13 +821,9 @@ function loadImage( file ,target ) {
 }
 function _rand_positioning(_obj){
 	//_obj = canvas.getObjects();
-	if(typeof _obj === "object"){
-		_active_rand_positioning(_obj);
-	} else {
-		jQuery.each(_obj, function(i, val){
-			_active_rand_positioning(val);
-		});
-	};
+	jQuery.each(_obj, function(i, val){
+		_active_rand_positioning(val);
+	});
 }
 function _active_rand_positioning(val){
 	//var val = canvas.getActiveObject();		
@@ -1528,37 +1445,31 @@ function save_canvas(){
 	
 }
 function click_delete(e){
-	var canvas= Drupal.settings.canvas_view.getActiveCanvas(),
-		active = canvas.getActiveObject();
-	if(active){
-		if(typeof active.name === "string"){
-			if(active.type === "image"){
-				//remove file from upload queue
-				fff = jQuery.map(fff, function(file,i){
-					if(file.name === active.name){				
-						return null;
-					} else {
-						return file;
-					}
-				});
-				//remove file from server
-				if(active.name.match(/^fid/) !== null){
-					_delete_fid(active.name.replace(/^fid_/, ""));
-				}
+	var active = Drupal.settings.canvas_view.canvas.getActiveObject()
+	if(typeof active.name === "string" && active.type === "image"){
+		//remove file from upload queue
+		fff = jQuery.map(fff, function(file,i){
+			if(file.name === active.name){				
+				return null;
+			} else {
+				return file;
 			}
-			if(active.name === "student" ){
-				Drupal.settings.lifebook._remove_student_page(active.student_id);
-			}
-		}
-		active.remove();
-		if(canvas.getActiveGroup()){
-		  canvas.getActiveGroup().forEachObject(function(o){ canvas.remove(o) });
-		  canvas.discardActiveGroup().renderAll();
-		} else {
-		  canvas.remove(canvas.getActiveObject());
-		  canvas_render();
+		});
+		//remove file from server
+		if(active.name.match(/^fid/) !== null){
+			_delete_fid(active.name.replace(/^fid_/, ""));
 		}
 	}
+	active.remove();
+	if(canvas.getActiveGroup()){
+      canvas.getActiveGroup().forEachObject(function(o){ canvas.remove(o) });
+      canvas.discardActiveGroup().renderAll();
+    } else {
+      canvas.remove(canvas.getActiveObject());
+      canvas_render();
+    }
+
+	
 }
 function _delete_fid(fid){
 	jQuery.get('/delete_fid/'+fid+'/'+Drupal.settings.canvas_view.current_node, function(res){
