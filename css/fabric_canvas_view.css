@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 .ui-dialog-content{
 display:none;
 }
@@ -9,12 +8,6 @@ display:none;
 .canvas-container{
 border: 1px solid black;
 }
-=======
-
-
-canvas{
-border: 1px solid black;
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 
 .field-type-json .field-item{
 	margin:5px 2px; 
@@ -196,7 +189,3 @@ body > .ui-dialog {
 body > .ui-dialog:hover {
     transform: scale(1) ;
 }
-
-
-
-

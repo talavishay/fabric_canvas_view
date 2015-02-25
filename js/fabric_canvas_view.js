@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 Drupal.settings.canvas_view = {
 		getActiveCanvas : function(){
 			return jQuery(".canvas-container.active canvas[id]")[0].fabric;
@@ -28,43 +28,6 @@ if (!Array.prototype.findIndex) {
   };
 }
 
-=======
-function dataURItoBlob(dataURI) {
-    // convert base64 to raw binary data held in a string
-    var byteString = atob(dataURI.split(',')[1]);
- 
-    // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
- 
-    // write the bytes of the string to an ArrayBuffer
-    var arrayBuffer = new ArrayBuffer(byteString.length);
-    var _ia = new Uint8Array(arrayBuffer);
-    for (var i = 0; i < byteString.length; i++) {
-        _ia[i] = byteString.charCodeAt(i);
-    }
- 
-    var dataView = new DataView(arrayBuffer);
-    var blob = new Blob([dataView], { type: mimeString });
-    return blob;
-}
-jQuery(document).ready(function(){
-	//fff();
-	//if(!Drupal.settings.canvas_view.canvas_view_field){
-		////misc
-		////jQuery("#page-title").css({"position":"absolute","top":"-70px"});
-		//jQuery("#page-title,#breadcrumb").remove();
-		////jQuery.event.props.push('dataTransfer');
-		//jQuery("#ui-accordion-1-header-0").click();
-		////misc ## END
-		
-		//Drupal.settings.canvas_view.dom_parent = jQuery("#content .tabs").last();
-		//if(!jQuery(".page-node-edit").length && jQuery(".page-node").length){
-			//init(Drupal.settings.canvas_view.dom_parent );
-		//}
-	//}
-});
-// init 
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 function init_fabric(){
 	/**
 	 * Item name is non-unique
@@ -115,7 +78,6 @@ function init_fabric(){
 			return object;
 		}
 	};
-<<<<<<< HEAD
 	
 	//fabric.NamedIText = fabric.util.createClass(fabric.IText, {
 
@@ -180,7 +142,7 @@ function init_fabric(){
 		fabric.Object.prototype.cornerSize = 20;
 		fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
 		fabric.Canvas.prototype.selection = false;
-	}
+}
 //function init(id, canvas_profile) {
 	//if(canvas_profile){
 	
@@ -219,53 +181,53 @@ function init_fabric(){
 	//return canvas;
 //}
 //}
-=======
-	fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
-	fabric.Object.prototype.borderColor = 'red';
-	fabric.Object.prototype.cornerColor = 'green';
-	fabric.Object.prototype.cornerSize = 20;
-	fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
-	fabric.Canvas.prototype.selection = false;
-}
-function init(id, canvas_profile) {
-	if(canvas_profile){
+
+	//fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
+	//fabric.Object.prototype.borderColor = 'red';
+	//fabric.Object.prototype.cornerColor = 'green';
+	//fabric.Object.prototype.cornerSize = 20;
+	//fabric.Canvas.prototype.backgroundColor = 'rgba(0,0,0,0.1)';
+	//fabric.Canvas.prototype.selection = false;
+//}
+//function init(id, canvas_profile) {
+	//if(canvas_profile){
 	
-	init_fabric();
+	//init_fabric();
 	
-	var canvas = draw_stage(id, canvas_profile);
+	//var canvas = draw_stage(id, canvas_profile);
 	
-	//var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();
-	var json = Drupal.settings.canvas_view.json = jQuery(".field-name-body .field-item").text();      
+	////var json = Drupal.settings.canvas_view.json = jQuery(".field-name-field-layout-data .field-item").text();
+	//var json = Drupal.settings.canvas_view.json = jQuery(".field-name-body .field-item").text();      
 	
-	if(json !== ""){
-		json = JSON.parse(Drupal.settings.canvas_view.json);
-		//var object = JSON.parse(json); //use default json parser
-		canvas.loadFromJSON(json, function(){
-			canvas_render();
-		}, function(o, object){
-			//o.clipTo.replace(/width/i, o.width);
-		});
-	} else {
-		_options = {
-		left: (canvas.width - canvas.width / 3)*Math.random(),
-		top: (canvas.height - canvas.height / 3)*Math.random(),
-		fill: getRandomColor(),
-		width: canvas.width / 3,
-		height: canvas.height / 3,
-	};
-		window.setTimeout(function(){
-			add_rect(canvas, _options);
-			canvas.renderAll();
-			//pattern();
-		},0);
-	}
-	window.setTimeout(function(){
-			canvas_render();
-	}, 0);
-	return canvas;
-}
-}
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
+	//if(json !== ""){
+		//json = JSON.parse(Drupal.settings.canvas_view.json);
+		////var object = JSON.parse(json); //use default json parser
+		//canvas.loadFromJSON(json, function(){
+			//canvas_render();
+		//}, function(o, object){
+			////o.clipTo.replace(/width/i, o.width);
+		//});
+	//} else {
+		//_options = {
+		//left: (canvas.width - canvas.width / 3)*Math.random(),
+		//top: (canvas.height - canvas.height / 3)*Math.random(),
+		//fill: getRandomColor(),
+		//width: canvas.width / 3,
+		//height: canvas.height / 3,
+	//};
+		//window.setTimeout(function(){
+			//add_rect(canvas, _options);
+			//canvas.renderAll();
+			////pattern();
+		//},0);
+	//}
+	//window.setTimeout(function(){
+			//canvas_render();
+	//}, 0);
+	//return canvas;
+//}
+//}
+
 function draw_stage(id, canvas_profile){
 	//dom_parent.after(jQuery('<canvas dir="rtl"  height="450" id="canvas_id"/>'));
 
@@ -402,13 +364,8 @@ function add_tools(canvas){
 		closeOnEscape: false,
 		title: "tools",
 		resizable: false ,
-<<<<<<< HEAD
 		position : { 	my : "right top+50",
 						at : "right top",
-=======
-		position : { 	my : "right top",
-						at : "left top+20",
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 						of	:	window
 		},
 		create: function( event, ui ) {
@@ -420,7 +377,6 @@ function add_tools(canvas){
 				.parent()
 				.children(".ui-dialog-titlebar")
 				.append(myIcon);
-<<<<<<< HEAD
 			jQuery(this).parents(".ui-dialog").css('position', 'fixed').once();
 			jQuery("button", this).button({text:false});
 			jQuery('.ui-accordion-header[tabindex="0"]', this).click();
@@ -428,13 +384,6 @@ function add_tools(canvas){
 		},
 	});
 	//.dialog('widget').find(".ui-dialog-titlebar").hide();
-=======
-			jQuery(this).parents(".ui-dialog").css('position', 'fixed');
-			jQuery("button", this).button({text:false});
-			jQuery('.ui-accordion-header[tabindex="0"]', this).click();
-		},
-	});//.dialog('widget').find(".ui-dialog-titlebar").hide();
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 	
 	//jQuery(wrap_g).dialog({
 		 //closeOnEscape: false,
@@ -625,11 +574,7 @@ function bind_tools(context) {
 		add_content(Drupal.settings.canvas_view.getActiveCanvas());
 	});
 	jQuery("#underline", 	context).on('click', 	function click_draw(e){
-<<<<<<< HEAD
 		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
-=======
-		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 		var active = canvas.getActiveObject();
 		//TODO: if text ?!
 		var underline = active.getTextDecoration();
@@ -733,37 +678,9 @@ function bind_tools(context) {
 			target.data('toggle', "off");
 		}
 	});
-<<<<<<< HEAD
 	jQuery("#save", 		context).once().on('click', 	function click_save(e){
 		_save();
 	});
-=======
-	jQuery("#save", 		context).on('click', 	function click_save(e){
-		//send(fff);
-		_save();
-	});
-}
-function _save(){
-jQuery.ajax({
-			url : "/save_canvas_handler",
-			type : "POST",
-			data : {
-				"nid"			:	Drupal.settings.canvas_view.current_node,
-				"layout_data"	: 	JSON.stringify(canvas.toDatalessJSON())
-			},
-			success : function(d){
-				jQuery("#save").css("background-color","green");
-				window.setTimeout(function(){
-					jQuery("#save").css("background-color","");
-				},2000);
-				
-				console.log(d);
-			}
-		});
-}
-function canvas_export(){
-	return JSON.stringify(canvas.toDatalessJSON());
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 }
 _save = function _save(item){
 	jQuery(".canvas-container.activated canvas[id]").each(function(i, val){  
@@ -833,54 +750,12 @@ function bind_events(canvas){
  * is at a differnt position the the "new" unbolded text... 
  */
 function canvas_render(){
-<<<<<<< HEAD
 	var canvas = Drupal.settings.canvas_view.getActiveCanvas();
 		//canvas.calcOffset();
 		canvas.renderAll();
 }
 function add_rect(canvas, options ){
 	var canvas = Drupal.settings.canvas_view.getActiveCanvas(); 
-=======
-	
-	
-	//if(typeof Drupal.settings.canvas_view.canvas.state === "undefined"){
-		//Drupal.settings.canvas_view.canvas.state = false;
-	//}
-	
-	//if(Drupal.settings.canvas_view.canvas.state === false){
-		Drupal.settings.canvas_view.interval = window.setTimeout(function(){
-			//var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
-			//Drupal.settings.canvas_view.canvas.state = true;
-			//canvas.setCoords();
-			canvas.calcOffset();
-			canvas.renderAll();
-//console.log('tick.');
-			
-		},500);
-		Drupal.settings.canvas_view.interval = window.setTimeout(function(){
-			//var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
-			//var canvas = pattern;
-			//Drupal.settings.canvas_view.canvas.state = true;
-			//canvas.setCoords();
-			canvas.calcOffset();
-			canvas.renderAll();
-//console.log('tick.');
-
-		},500);
-		//window.setTimeout(function(){
-
-			//Drupal.settings.canvas_view.canvas.state  = false;
-			//console.log('up ...');
-			//window.clearInterval(Drupal.settings.canvas_view.canvas.interval);
-			//delete interval;
-
-		//},2000);
-	//}
-}
-
-function add_rect(canvas, options ){
-	var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas); 
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 	_options = {
 		left: (canvas.width - canvas.width / 3)*Math.random(),
 		top: (canvas.height - canvas.height / 3)*Math.random(),
@@ -896,11 +771,7 @@ function add_rect(canvas, options ){
 	return rect;
 }
 function add_circle(){
-<<<<<<< HEAD
 		var canvas = Drupal.settings.canvas_view.getActiveCanvas();
-=======
-		var canvas = Drupal.settings.canvas_view.getActiveCanvas(canvas);
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 		var circle = new fabric.Circle({
 			radius: canvas.width / 6,
 			fill: getRandomColor(),
@@ -1077,7 +948,6 @@ function loadImage( file ,target ) {
 }
 function _rand_positioning(_obj){
 	//_obj = canvas.getObjects();
-<<<<<<< HEAD
 	if(typeof _obj === "object"){
 		_active_rand_positioning(_obj);
 	} else {
@@ -1085,11 +955,6 @@ function _rand_positioning(_obj){
 			_active_rand_positioning(val);
 		});
 	};
-=======
-	jQuery.each(_obj, function(i, val){
-		_active_rand_positioning(val);
-	});
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 }
 function _active_rand_positioning(val){
 	//var val = canvas.getActiveObject();		
@@ -1683,7 +1548,6 @@ function getRandomColor() {
     }
     return color;
 }
-<<<<<<< HEAD
 function dataURItoBlob(dataURI) {
     // convert base64 to raw binary data held in a string
     var byteString = atob(dataURI.split(',')[1]);
@@ -1743,43 +1607,6 @@ function click_delete(e){
 		  canvas_render();
 		}
 	}
-=======
-
-
-function save_canvas(){
-	var current_images = get_images(),
-		text_items = get_texts();
-	
-	sync_files();
-	
-}
-function click_delete(e){
-	var active = Drupal.settings.canvas_view.canvas.getActiveObject()
-	if(typeof active.name === "string" && active.type === "image"){
-		//remove file from upload queue
-		fff = jQuery.map(fff, function(file,i){
-			if(file.name === active.name){				
-				return null;
-			} else {
-				return file;
-			}
-		});
-		//remove file from server
-		if(active.name.match(/^fid/) !== null){
-			_delete_fid(active.name.replace(/^fid_/, ""));
-		}
-	}
-	active.remove();
-	if(canvas.getActiveGroup()){
-      canvas.getActiveGroup().forEachObject(function(o){ canvas.remove(o) });
-      canvas.discardActiveGroup().renderAll();
-    } else {
-      canvas.remove(canvas.getActiveObject());
-      canvas_render();
-    }
-
-	
->>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
 }
 function _delete_fid(fid){
 	jQuery.get('/delete_fid/'+fid+'/'+Drupal.settings.canvas_view.current_node, function(res){
