@@ -3,3 +3,22 @@ core = 7.x
 dependencies[] = jquery_update
 dependencies[] = image
 dependencies[] = entity
+<<<<<<< HEAD
+=======
+
+stylesheets[all][] = css/fabric_canvas_view.css
+scripts[] = js/fabric_canvas_view.js
+scripts[] = js/dialog.js
+scripts[] = js/exif.js
+scripts[] = js/fabric.js
+scripts[] = js/jquery.fileupload.js
+;scripts[] = js/jquery.dialogextend.min.js
+
+scripts[] = js/jquery-gradient-picker/vendor/jqPlugins/colorpicker/js/colorpicker.js 
+stylesheets[all][] = js/jquery-gradient-picker/vendor/jqPlugins/colorpicker/css/colorpicker.css 
+
+scripts[] = js/jquery-gradient-picker/plugin/jquery.gradientPicker.js
+stylesheets[all][] = js/jquery-gradient-picker/plugin/jquery.gradientPicker.css 
+ 
+
+>>>>>>> 59494ef1057130bc007e89a3029f9fdf0101d5f2
