@@ -4,7 +4,7 @@ Drupal.settings.canvas_view = {
 			return jQuery(".canvas-container.active canvas[id]")[0].fabric;
 		}
 };
-
+//jhgfdfghjk
 if (!Array.prototype.findIndex) {
   Array.prototype.findIndex = function(predicate) {
     if (this == null) {
